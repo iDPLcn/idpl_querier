@@ -1,2 +1,7 @@
 .project
 .pydevproject
+db.sqlite3
+esmond_client/__pycache__/
+idpl_querier/__pycache__/
+querier_server/__pycache__/
+querier_server/migrations/__pycache__/
