@@ -4,7 +4,7 @@ Created on 2014.10.23
 @author: Jarvis Zhang
 '''
 import requests
-from querier_server.models import Throughput
+from querier_server.models import IntFloatPoint
 
 class EsmondConn(object):
     '''
@@ -37,7 +37,7 @@ class EsmondConn(object):
         throughputData = []
         try:
             throughputData = [
-                Throughput(point['ts'], point['val']) for point in data
+                IntFloatPoint(point['ts'], point['val']) for point in data
             ]
         except Exception:
             # TO DO

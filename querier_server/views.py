@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from esmond_client.connector import EsmondConn
-from querier_server.serializers import ThroughputSerializer
+from querier_server.serializers import IntFloatPointSerializer
 
 # Create your views here.
 
@@ -27,7 +27,7 @@ class ThroughputQuerier(APIView):
         try:
             conn = EsmondConn(self.src)
             throughputs = conn.getThroughputData(self.dst, self.timeStart, self.timeEnd)
-            serializer = ThroughputSerializer(throughputs, many=True)
+            serializer = IntFloatPointSerializer(throughputs, many=True)
             return Response(serializer.data)
         except Exception:
             return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)

@@ -5,8 +5,9 @@ Created on 2014.10.23
 '''
 
 from django.conf.urls import patterns, url
-from . import views
+from querier_server.views import ThroughputQuerier
+
 
 urlpatterns = patterns('',
-    url(r'^throughput/$', views.ThroughputQuerier.as_view()),
+    url(r'^throughput/$', ThroughputQuerier.as_view()),
 )

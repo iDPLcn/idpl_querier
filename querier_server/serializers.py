@@ -6,6 +6,6 @@ Created on 2014.10.23
 
 from rest_framework import serializers
 
-class ThroughputSerializer(serializers.Serializer):
-    timestamp = serializers.IntegerField()
-    bandwidth = serializers.FloatField() 
+class IntFloatPointSerializer(serializers.Serializer):
+    x_value = serializers.IntegerField()
+    y_value = serializers.FloatField() 
