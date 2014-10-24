@@ -18,17 +18,15 @@ class EsmondConn(object):
         '''
         
         self.hostname = hostname
+        self.metaUrl = 'http://%s/esmond/perfsonar/archive/' % self.hostname
         
     def getThroughputData(self, dst, timeStart, timeEnd):
         eventType = 'throughput'
-        metaUrl = 'http://%s/esmond/perfsonar/archive/' % self.hostname
         uri = ''
-        metadata = self.__getMetadata(metaUrl, dst, eventType)
+        metadataList = self.__getMetadata(self.metaUrl, dst, eventType)
         try:
-            for eventTypeDict in metadata[0]['event-types']:
-                if eventTypeDict['event-type'] == 'throughput':
-                    uri = eventTypeDict['base-uri']
-                    break
+            eventTypeDict = self.__getEventTypeDict(metadataList[0], eventType)
+            uri = eventTypeDict['base-uri']
         except Exception:
             # TO DO
             return []
@@ -44,8 +42,39 @@ class EsmondConn(object):
             pass
         finally:
             return throughputData
-        return throughputData
     
+    def getOwdelayData(self, dst, timeStart, timeEnd):
+        eventType = 'histogram-owdelay'
+        uri = ''
+        metadataList = self.__getMetadata(self.metaUrl, dst, eventType)
+        try:
+            eventTypeDict = self.__getEventTypeDict(metadataList[0], eventType)
+            summaryDict = self.__getSummaryDict(eventTypeDict['summaries'],
+                                                'statistics', '0')
+            uri = summaryDict['uri']
+        except Exception:
+            # TO DO
+            return []
+        
+        dataUrl = 'http://%s%s' % (self.hostname, uri)
+        data = self.__getData(dataUrl, timeStart, timeEnd)
+        owdelayData = []
+        try:
+            owdelayData = [
+                IntFloatPoint(point['ts'], point['val']['minimum']) for point in data
+            ]
+        except Exception:
+            # TO DO
+            pass
+        finally:
+            return owdelayData
+        
+    def getPingData(self, dst, timeStart, timeEnd):
+        pass
+    
+    def getLossData(self, dst, timeStart, timeEnd):
+        pass
+
     def __getMetadata(self, url, dst, eventType):
         parameters = {
             'event-type': eventType,
@@ -60,6 +89,27 @@ class EsmondConn(object):
             pass
         finally:
             return metadata
+        
+    def __getEventTypeDict(self, metadata, eventType):
+        for eventTypeDict in metadata['event-types']:
+            if self.__dictCheck(eventTypeDict, {'event-type': eventType}):
+                return eventTypeDict
+        return {}
+    
+    def __getSummaryDict(self, summaryList, summaryType, summaryWindow):
+        for summaryDict in summaryList:
+            if self.__dictCheck(summaryDict, {
+                'summary-type': summaryType,
+                'summary-window': summaryWindow,                              
+            }):
+                return summaryDict
+        return {}
+    
+    def __dictCheck(self, rawDict, conditionDict):
+        for condition in conditionDict:
+            if rawDict[condition] != conditionDict[condition]:
+                return False
+        return True
         
     def __getData(self, url, timeStart, timeEnd):
         parameters = {
