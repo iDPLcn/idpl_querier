@@ -41,7 +41,11 @@ class NetworkQuerier(APIView):
         
 class ThroughputQuerier(NetworkQuerier):
     '''
-    Get throughput data by src, dest and time range.
+    Get throughput data by source IP, destination IP and time range.
+    src -- source IP address
+    dst -- destination IP address
+    time-start -- unixtime of start
+    time-end -- unixtime of end
     '''
     
     def get(self, request):
@@ -49,7 +53,11 @@ class ThroughputQuerier(NetworkQuerier):
     
 class OwdelayQuerier(NetworkQuerier):
     '''
-    Get one-way delay data by src, dest and time range.
+    Get one-way delay data source IP, destination IP and time range.
+    src -- source IP address
+    dst -- destination IP address
+    time-start -- unixtime of start
+    time-end -- unixtime of end
     '''
     
     def get(self, request):
@@ -57,7 +65,11 @@ class OwdelayQuerier(NetworkQuerier):
     
 class PingQuerier(NetworkQuerier):
     '''
-    Get ping latency data by src, dest and time range.
+    Get ping latency data by source IP, destination IP and time range.
+    src -- source IP address
+    dst -- destination IP address
+    time-start -- unixtime of start
+    time-end -- unixtime of end
     '''
     
     def get(self, request):
@@ -65,7 +77,11 @@ class PingQuerier(NetworkQuerier):
     
 class LossQuerier(NetworkQuerier):
     '''
-    Get loss rate data by src, dest and time range.
+    Get loss rate data by source IP, destination IP and time range.
+    src -- source IP address
+    dst -- destination IP address
+    time-start -- unixtime of start
+    time-end -- unixtime of end
     '''
     
     def get(self, request):

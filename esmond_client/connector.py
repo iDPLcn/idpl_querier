@@ -107,7 +107,6 @@ class EsmondConn(object):
             # TO DO
             return []
         dataUrl = 'http://%s%s' % (self.hostname, uri)
-        print(dataUrl)
         data = self.__getData(dataUrl, timeStart, timeEnd)
         lossData = []
         try:
