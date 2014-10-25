@@ -5,11 +5,13 @@ Created on 2014.10.23
 '''
 
 from django.conf.urls import patterns, url
-from querier_server.views import NetworkQuerier, ThroughputQuerier, OwdelayQuerier
+from querier_server.views import *
 
 
 urlpatterns = patterns('',
     url(r'^throughput/$', ThroughputQuerier.as_view()),
     url(r'^owdelay/$', OwdelayQuerier.as_view()),
-    url(r'^query/$', NetworkQuerier.as_view()),
+    url(r'^ping/$', PingQuerier.as_view()),
+    url(r'^loss/$', LossQuerier.as_view()),
+#     url(r'^query/$', NetworkQuerier.as_view()),
 )

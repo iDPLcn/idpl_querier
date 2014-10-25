@@ -61,7 +61,8 @@ class EsmondConn(object):
         owdelayData = []
         try:
             owdelayData = [
-                IntFloatPoint(point['ts'], point['val']['minimum']) for point in data
+                IntFloatPoint(point['ts'], point['val']['minimum']) 
+                    for point in data
             ]
         except Exception:
             # TO DO
@@ -70,10 +71,55 @@ class EsmondConn(object):
             return owdelayData
         
     def getPingData(self, dst, timeStart, timeEnd):
-        pass
+        eventType = 'histogram-rtt'
+        uri = ''
+        metadataList = self.__getMetadata(self.metaUrl, dst, eventType)
+        try:
+            eventTypeDict = self.__getEventTypeDict(metadataList[0], eventType)
+            summaryDict = self.__getSummaryDict(eventTypeDict['summaries'],
+                                                'statistics', '0')
+            uri = summaryDict['uri']
+        except Exception:
+            # TO DO
+            return []
+        dataUrl = 'http://%s%s' % (self.hostname, uri)
+        data = self.__getData(dataUrl, timeStart, timeEnd)
+        pingData = []
+        try:
+            pingData = [
+                IntFloatPoint(point['ts'], point['val']['minimum'])
+                    for point in data
+            ]
+        except Exception:
+            # TO DO
+            pass
+        finally:
+            return pingData
     
     def getLossData(self, dst, timeStart, timeEnd):
-        pass
+        eventType = 'packet-loss-rate'
+        uri = ''
+        metadataList = self.__getMetadata(self.metaUrl, dst, eventType)
+        try:
+            eventTypeDict = self.__getEventTypeDict(metadataList[0], eventType)
+            uri = eventTypeDict['base-uri']
+        except Exception:
+            # TO DO
+            return []
+        dataUrl = 'http://%s%s' % (self.hostname, uri)
+        print(dataUrl)
+        data = self.__getData(dataUrl, timeStart, timeEnd)
+        lossData = []
+        try:
+            lossData = [
+                IntFloatPoint(point['ts'], point['val'])
+                    for point in data
+            ]
+        except Exception:
+            # TO DO
+            pass
+        finally:
+            return lossData
 
     def __getMetadata(self, url, dst, eventType):
         parameters = {

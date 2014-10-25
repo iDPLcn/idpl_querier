@@ -8,6 +8,8 @@ from querier_server.serializers import IntFloatPointSerializer
 
 # Create your views here.
 
+__all__ = ['ThroughputQuerier', 'OwdelayQuerier', 'PingQuerier', 'LossQuerier']
+
 class NetworkQuerier(APIView):
 
     def __getRequest(self, request):
@@ -29,9 +31,9 @@ class NetworkQuerier(APIView):
             elif type == 'owdelay':
                 points = conn.getOwdelayData(self.dst, self.timeStart, self.timeEnd)
             elif type == 'ping':
-                pass
+                points = conn.getPingData(self.dst, self.timeStart, self.timeEnd)
             elif type == 'loss':
-                pass
+                points = conn.getLossData(self.dst, self.timeStart, self.timeEnd)
             serializer = IntFloatPointSerializer(points, many=True)
             return Response(serializer.data)
         except Exception:
