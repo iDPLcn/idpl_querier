@@ -17,7 +17,10 @@ class EsmondConn(object):
         Constructor
         '''
         
-        self.hostname = hostname
+        if '.' in hostname:
+            self.hostname = hostname
+        else:
+            self.hostname = '[%s]' % hostname
         self.metaUrl = 'http://%s/esmond/perfsonar/archive/' % self.hostname
         
     def getThroughputData(self, dst, timeStart, timeEnd):
