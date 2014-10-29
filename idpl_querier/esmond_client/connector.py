@@ -64,8 +64,8 @@ class EsmondConn(object):
         owdelayData = []
         try:
             owdelayData = [
-                IntFloatPoint(point['ts'], point['val']['minimum']) 
-                    for point in data
+                IntFloatPoint(point['ts'], point['val']['minimum'])
+                    for point in data if point['val']['minimum'] >= 0
             ]
         except Exception:
             # TO DO
@@ -91,7 +91,7 @@ class EsmondConn(object):
         try:
             pingData = [
                 IntFloatPoint(point['ts'], point['val']['minimum'])
-                    for point in data
+                    for point in data if point['val']['minimum'] >= 0
             ]
         except Exception:
             # TO DO
