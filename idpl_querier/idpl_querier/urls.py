@@ -9,7 +9,7 @@ urlpatterns = patterns('',
 
 #     url(r'^admin/', include(admin.site.urls)),
     url(r'^perfsonar/', include('querier_server.urls')),
-    url(r'^docs/', include('rest_framework_swagger.urls')),
+    url(r'^perfsonar/docs/', include('rest_framework_swagger.urls')),
     url(r'^static/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': settings.STATIC_ROOT,
         }),
