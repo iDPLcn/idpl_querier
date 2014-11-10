@@ -25,16 +25,18 @@ class EsmondConn(object):
         
     def getThroughputData(self, dst, timeStart, timeEnd):
         eventType = 'throughput'
-        uri = ''
         metadataList = self.__getMetadata(self.metaUrl, dst, eventType)
-        try:
-            eventTypeDict = self.__getEventTypeDict(metadataList[0], eventType)
-            uri = eventTypeDict['base-uri']
-        except Exception:
-            # TO DO
-            return []
-        dataUrl = 'http://%s%s' % (self.hostname, uri)
-        data = self.__getData(dataUrl, timeStart, timeEnd)
+        data = []
+        for metadataDict in metadataList:
+            uri = ''
+            try:
+                eventTypeDict = self.__getEventTypeDict(metadataDict, eventType)
+                uri = eventTypeDict['base-uri']
+            except Exception:
+                # TO DO
+                pass
+            dataUrl = 'http://%s%s' % (self.hostname, uri)
+            data.extend(self.__getData(dataUrl, timeStart, timeEnd))
         throughputData = []
         try:
             throughputData = [
@@ -48,19 +50,20 @@ class EsmondConn(object):
     
     def getOwdelayData(self, dst, timeStart, timeEnd):
         eventType = 'histogram-owdelay'
-        uri = ''
         metadataList = self.__getMetadata(self.metaUrl, dst, eventType)
-        try:
-            eventTypeDict = self.__getEventTypeDict(metadataList[0], eventType)
-            summaryDict = self.__getSummaryDict(eventTypeDict['summaries'],
-                                                'statistics', '0')
-            uri = summaryDict['uri']
-        except Exception:
-            # TO DO
-            return []
-        
-        dataUrl = 'http://%s%s' % (self.hostname, uri)
-        data = self.__getData(dataUrl, timeStart, timeEnd)
+        data = []
+        for metadataDict in metadataList:
+            uri = ''
+            try:
+                eventTypeDict = self.__getEventTypeDict(metadataDict, eventType)
+                summaryDict = self.__getSummaryDict(eventTypeDict['summaries'],
+                                                    'statistics', '0')
+                uri = summaryDict['uri']
+            except Exception:
+                # TO DO
+                pass
+            dataUrl = 'http://%s%s' % (self.hostname, uri)
+            data.extend(self.__getData(dataUrl, timeStart, timeEnd))
         owdelayData = []
         try:
             owdelayData = [
@@ -75,18 +78,20 @@ class EsmondConn(object):
         
     def getPingData(self, dst, timeStart, timeEnd):
         eventType = 'histogram-rtt'
-        uri = ''
         metadataList = self.__getMetadata(self.metaUrl, dst, eventType)
-        try:
-            eventTypeDict = self.__getEventTypeDict(metadataList[0], eventType)
-            summaryDict = self.__getSummaryDict(eventTypeDict['summaries'],
-                                                'statistics', '0')
-            uri = summaryDict['uri']
-        except Exception:
-            # TO DO
-            return []
-        dataUrl = 'http://%s%s' % (self.hostname, uri)
-        data = self.__getData(dataUrl, timeStart, timeEnd)
+        data = []
+        for metadataDict in metadataList:
+            uri = ''
+            try:
+                eventTypeDict = self.__getEventTypeDict(metadataDict, eventType)
+                summaryDict = self.__getSummaryDict(eventTypeDict['summaries'],
+                                                    'statistics', '0')
+                uri = summaryDict['uri']
+            except Exception:
+                # TO DO
+                pass
+            dataUrl = 'http://%s%s' % (self.hostname, uri)
+            data.extend(self.__getData(dataUrl, timeStart, timeEnd))
         pingData = []
         try:
             pingData = [
@@ -101,16 +106,18 @@ class EsmondConn(object):
     
     def getLossData(self, dst, timeStart, timeEnd):
         eventType = 'packet-loss-rate'
-        uri = ''
         metadataList = self.__getMetadata(self.metaUrl, dst, eventType)
-        try:
-            eventTypeDict = self.__getEventTypeDict(metadataList[0], eventType)
-            uri = eventTypeDict['base-uri']
-        except Exception:
-            # TO DO
-            return []
-        dataUrl = 'http://%s%s' % (self.hostname, uri)
-        data = self.__getData(dataUrl, timeStart, timeEnd)
+        data = []
+        for metadataDict in metadataList:
+            uri = ''
+            try:
+                eventTypeDict = self.__getEventTypeDict(metadataDict, eventType)
+                uri = eventTypeDict['base-uri']
+            except Exception:
+                # TO DO
+                pass
+            dataUrl = 'http://%s%s' % (self.hostname, uri)
+            data.extend(self.__getData(dataUrl, timeStart, timeEnd))
         lossData = []
         try:
             lossData = [
