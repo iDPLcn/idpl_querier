@@ -17,3 +17,14 @@ TEMPLATE_DEBUG = False
 ALLOWED_HOSTS = ['*']
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+DATABASES = {
+    'default': {
+        'NAME': 'idpl',
+        'ENGINE': 'mysql.connector.django',
+        'USER': 'idpl',
+        'PASSWORD': 'idpl@jsi',
+        'HOST': '127.0.0.1',
+        'PORT': '3306'
+    }
+}
