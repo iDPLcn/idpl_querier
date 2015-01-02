@@ -31,7 +31,7 @@ class UnixTimestampField(models.DateTimeField):
         return ' '.join(typ)
 
     def to_python(self, value):
-        if isinstance(value, int):
+        if isinstance(value, int) or isinstance(value, float):
             return datetime.fromtimestamp(value)
         else:
             return models.DateTimeField.to_python(self, value)
@@ -39,7 +39,9 @@ class UnixTimestampField(models.DateTimeField):
     def get_db_prep_value(self, value, connection, prepared=False):
         if value==None:
             return None
-        # Use '%Y%m%d%H%M%S' for MySQL < 4.1 
+        elif isinstance(value, float) or isinstance(value, int):
+            value = datetime.fromtimestamp(value)
+        # Use '%Y%m%d%H%M%S' for MySQL < 4.1
         return strftime('%Y-%m-%d %H:%M:%S',value.timetuple())
     
 class TransferTime(models.Model):
