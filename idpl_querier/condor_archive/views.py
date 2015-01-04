@@ -55,7 +55,7 @@ class TransferTimeView(APIView):
                 destination=dst,
                 time_end__gte=timeStart,
                 time_end__lte=timeEnd
-            )
+            ).order_by('time_end')
         except Exception:
             raise Http404
         serializer = TransferTimeSerializer(TransferTimeList, many=True)
