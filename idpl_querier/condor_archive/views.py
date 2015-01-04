@@ -30,32 +30,24 @@ class NodeInfoView(APIView):
         return Response(serializer.data)
     
 class TransferTimeView(APIView):
-    '''
-    Get transfer time by hostname of source and destination, and time range
-    src -- hostname of source
-    dst -- hostname of destination
-    timeStart -- start time
-    timeEnd -- end time
-    timeEnd-start -- start unixtime of timeEnd
-    timeEnd-end -- end unixtime of timeEnd
-    md5_equal -- md5 checksum is right
-    duration -- timeEnd - timeStart
-    '''
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     def get(self, request):
+        '''
+        Get transfer time by source and destination, time range, organization  
+        '''
         src = request.GET.get('source', '')
         dst = request.GET.get('destination', '')
         organization = request.GET.get('organization', 'null')
         timeStartStr = request.GET.get('timeEnd-start')
         timeEndStr = request.GET.get('timeEnd-end')
-        nodeInfoList = NodeInfo.objects.get(organization=organization)
+        nodeInfoList = NodeInfo.objects.filter(organization=organization)
         if not nodeInfoList:
             organization = 'null'
         try:
             timeStart = float(timeStartStr)
             timeEnd = float(timeEndStr)
         except Exception:
-            raise ParameterError(detail='time parameters error')
+            raise ParameterError(detail='parameters format error')
         try:
             TransferTime = getTransferTimeModel(organization.lower())
             TransferTimeList = TransferTime.objects.filter(
@@ -70,6 +62,9 @@ class TransferTimeView(APIView):
         return Response(serializer.data)
     
     def post(self, request):
+        """
+        Create a transfer time object from JSON string, authentication needed
+        """
         data = JSONParser().parse(request)
         serializer = TransferTimeSerializer(data=data)
         if serializer.is_valid():
