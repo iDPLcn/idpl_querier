@@ -30,7 +30,7 @@ class NodeInfoView(APIView):
         return Response(serializer.data)
     
 class TransferTimeView(APIView):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+#     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     def get(self, request):
         '''
         Get transfer time by source and destination, time range, organization  
@@ -65,9 +65,12 @@ class TransferTimeView(APIView):
         """
         Create a transfer time object from JSON string, authentication needed
         """
-        data = JSONParser().parse(request)
-        serializer = TransferTimeSerializer(data=data)
-        if serializer.is_valid():
-            serializer.create(data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            data = JSONParser().parse(request)
+            serializer = TransferTimeSerializer(data=data)
+            if serializer.is_valid():
+                serializer.create(data)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            raise ParameterError(detail='parameters format error')

@@ -13,10 +13,10 @@ class UnixTimestampField(serializers.DateTimeField):
         super(UnixTimestampField, self).__init__(**kwargs)
         
     def to_native(self, value):
-        return str(value.timestamp())
+        return value.timestamp()
     
     def from_native(self, value):
-        dt_value = datetime.fromtimestamp(value)
+        dt_value = datetime.fromtimestamp(float(value))
         return serializers.DateTimeField.from_native(self, dt_value)
 
 class NodeInfoSerializer(serializers.Serializer):
