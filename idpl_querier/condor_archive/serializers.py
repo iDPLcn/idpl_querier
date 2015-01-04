@@ -6,7 +6,6 @@ Created on 2014.10.23
 from datetime import datetime
 from rest_framework import serializers
 from condor_archive.models import getTransferTimeModel
-from django.template.defaultfilters import lower
 
 class UnixTimestampField(serializers.DateTimeField):
     
