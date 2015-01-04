@@ -10,6 +10,7 @@ from condor_archive.serializers import TransferTimeSerializer
 from rest_framework.parsers import JSONParser
 from rest_framework.exceptions import APIException
 from rest_framework import permissions
+from condor_archive.serializers import getOrganizationBySource
 # Create your views here.
 
 __all__ = ['NodeInfoView', 'TransferTimeView']
@@ -30,19 +31,16 @@ class NodeInfoView(APIView):
         return Response(serializer.data)
     
 class TransferTimeView(APIView):
-#     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     def get(self, request):
         '''
         Get transfer time by source and destination, time range, organization  
         '''
-        src = request.GET.get('source', '')
-        dst = request.GET.get('destination', '')
-        organization = request.GET.get('organization', 'null')
+        source = request.GET.get('source', '')
+        destination = request.GET.get('destination', '')
         timeStartStr = request.GET.get('timeEnd-start')
         timeEndStr = request.GET.get('timeEnd-end')
-        nodeInfoList = NodeInfo.objects.filter(organization=organization)
-        if not nodeInfoList:
-            organization = 'null'
+        organization = getOrganizationBySource(source)
         try:
             timeStart = float(timeStartStr)
             timeEnd = float(timeEndStr)
@@ -51,8 +49,8 @@ class TransferTimeView(APIView):
         try:
             TransferTime = getTransferTimeModel(organization.lower())
             TransferTimeList = TransferTime.objects.filter(
-                source=src,
-                destination=dst,
+                source=source,
+                destination=destination,
                 time_end__gte=timeStart,
                 time_end__lte=timeEnd
             ).order_by('time_end')
