@@ -4,15 +4,19 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from condor_archive.models import NodeInfo
-from condor_archive.models import TransferTime
+from condor_archive.models import getTransferTimeModel
 from condor_archive.serializers import NodeInfoSerializer
 from condor_archive.serializers import TransferTimeSerializer
-from datetime import datetime
-from django.core.context_processors import request
 from rest_framework.parsers import JSONParser
+from rest_framework.exceptions import APIException
 # Create your views here.
 
 __all__ = ['NodeInfoView', 'TransferTimeView']
+
+class ParameterError(APIException):
+        
+    status_code = 400
+    detail = 'parameters error'
 
 class NodeInfoView(APIView):
     '''
@@ -38,19 +42,29 @@ class TransferTimeView(APIView):
     '''
     
     def get(self, request):
+        src = request.GET.get('source', '')
+        dst = request.GET.get('destination', '')
+        organization = request.GET.get('organization', 'null')
+        timeStartStr = request.GET.get('timeEnd-start')
+        timeEndStr = request.GET.get('timeEnd-end')
+        nodeInfoList = NodeInfo.objects.get(organization=organization)
+        if not nodeInfoList:
+            organization = 'null'
         try:
-            src = request.GET.get('src', '')
-            dst = request.GET.get('dst', '')
-            timeStart = float(request.GET.get('timeEnd-start', ''))
-            timeEnd = float(request.GET.get('timeEnd-end', ''))
+            timeStart = float(timeStartStr)
+            timeEnd = float(timeEndStr)
+        except Exception:
+            raise ParameterError(detail='time parameters error')
+        try:
+            TransferTime = getTransferTimeModel(organization.lower())
+            TransferTimeList = TransferTime.objects.filter(
+                source=src,
+                destination=dst,
+                time_end__gte=timeStart,
+                time_end__lte=timeEnd
+            )
         except Exception:
             raise Http404
-        TransferTimeList = TransferTime.objects.filter(
-            source=src,
-            destination=dst,
-            time_end__gte=timeStart,
-            time_end__lte=timeEnd
-        )
         serializer = TransferTimeSerializer(TransferTimeList, many=True)
         return Response(serializer.data)
     

@@ -43,7 +43,7 @@ class UnixTimestampField(models.DateTimeField):
             value = datetime.fromtimestamp(value)
         # Use '%Y%m%d%H%M%S' for MySQL < 4.1
         return strftime('%Y-%m-%d %H:%M:%S',value.timetuple())
-    
+
 class TransferTime(models.Model):
     source = models.CharField(max_length=64, null=False)
     destination = models.CharField(max_length=64, null=False)
@@ -51,3 +51,30 @@ class TransferTime(models.Model):
     time_end = UnixTimestampField(null=False)
     md5_equal = models.BooleanField(null=False, default=None)
     duration = models.PositiveIntegerField(null=False)
+    
+    class Meta:
+        abstract = True
+        app_label = 'condor_archive'
+        managed = False
+    
+def getTransferTimeModel(organization, BaseClass = TransferTime):
+    if organization in globals():
+        return globals()[organization]
+    table_name_prefix = 'condor_archive_transfertime'
+    table_name = '{0}_{1}'.format(table_name_prefix, organization)
+
+    class NewMeta:
+        app_label = 'condor_archive'
+        managed = False
+        db_table = table_name
+    
+    newClass = type(
+        table_name,
+        (BaseClass,),
+        {
+            'Meta': NewMeta,
+            '__module__': __name__,
+        }
+    )
+    globals()[organization] = newClass
+    return newClass

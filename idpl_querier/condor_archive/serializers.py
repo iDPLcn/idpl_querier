@@ -5,7 +5,8 @@ Created on 2014.10.23
 '''
 from datetime import datetime
 from rest_framework import serializers
-from condor_archive.models import TransferTime
+from condor_archive.models import getTransferTimeModel
+from django.template.defaultfilters import lower
 
 class UnixTimestampField(serializers.DateTimeField):
     
@@ -36,4 +37,6 @@ class TransferTimeSerializer(serializers.Serializer):
         """
         Create and return a new 'TransferTime' instance, given the validated data
         """
+        organization = validated_data.pop('organization', 'null')
+        TransferTime = getTransferTimeModel(organization.lower())
         return TransferTime.objects.create(**validated_data)
