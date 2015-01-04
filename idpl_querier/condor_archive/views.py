@@ -9,6 +9,7 @@ from condor_archive.serializers import NodeInfoSerializer
 from condor_archive.serializers import TransferTimeSerializer
 from rest_framework.parsers import JSONParser
 from rest_framework.exceptions import APIException
+from rest_framework import permissions
 # Create your views here.
 
 __all__ = ['NodeInfoView', 'TransferTimeView']
@@ -40,7 +41,7 @@ class TransferTimeView(APIView):
     md5_equal -- md5 checksum is right
     duration -- timeEnd - timeStart
     '''
-    
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     def get(self, request):
         src = request.GET.get('source', '')
         dst = request.GET.get('destination', '')
