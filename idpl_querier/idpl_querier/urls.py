@@ -9,7 +9,7 @@ urlpatterns = patterns('',
 
     url(r'^idpl_querier/admin/', include(admin.site.urls)),
     url(r'^idpl_querier/docs/', include('rest_framework_swagger.urls')),
-    url(r'^idpl_querier/perfsonar/static/(?P<path>.*)$', 'django.views.static.serve', {
+    url(r'^idpl_querier/static/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': settings.STATIC_ROOT,
         }),
     url(r'^condor/', include('condor_archive.urls')),
