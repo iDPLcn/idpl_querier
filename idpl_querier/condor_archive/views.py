@@ -11,9 +11,11 @@ from rest_framework.parsers import JSONParser
 from rest_framework.exceptions import APIException
 from rest_framework import permissions
 from condor_archive.serializers import getOrganizationBySource
+from datetime import datetime
+from django.db.models import Avg
 # Create your views here.
 
-__all__ = ['NodeInfoView', 'TransferTimeView']
+__all__ = ['NodeInfoView', 'TransferTimeView', 'TransferTimeAvgView']
 
 class ParameterError(APIException):
         
@@ -72,3 +74,25 @@ class TransferTimeView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception:
             raise ParameterError(detail='parameters format error')
+        
+class TransferTimeAvgView(APIView):
+    def get(self, request):
+        '''
+        Get average transfer time of the latest year by source and destination
+        '''
+        source = request.GET.get('source', '')
+        destination = request.GET.get('destination', '')
+        organization = getOrganizationBySource(source)
+        timeEnd = datetime.now()
+        timeStart = datetime(timeEnd.year, 1, 1)
+        try:
+            TransferTime = getTransferTimeModel(organization.lower())
+            TransferTimeAvg = TransferTime.objects.filter(
+                source=source,
+                destination=destination,
+                time_end__gte=timeStart,
+                time_end__lte=timeEnd
+            ).aggregate(Avg('duration'))
+        except Exception:
+            raise Http404
+        return Response(TransferTimeAvg)
