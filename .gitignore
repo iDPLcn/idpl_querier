@@ -5,3 +5,4 @@ idpl_querier/esmond_client/__pycache__/
 idpl_querier/idpl_querier/__pycache__/
 idpl_querier/querier_server/__pycache__/
 idpl_querier/querier_server/migrations/__pycache__/
+idpl_querier/condor_archive/__pycache__/
