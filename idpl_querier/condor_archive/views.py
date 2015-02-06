@@ -27,8 +27,12 @@ class NodeInfoView(APIView):
     Get all Node infomation
     '''
 
-    def get(self, reqeust):
-        nodeInfoList = NodeInfo.objects.all()
+    def get(self, request):
+        pool_no = request.GET.get('pool_no', '')
+        if pool_no:
+            nodeInfoList = NodeInfo.objects.filter(pool_no=pool_no)
+        else:
+            nodeInfoList = NodeInfo.objects.all()
         serializer = NodeInfoSerializer(nodeInfoList, many=True)
         return Response(serializer.data)
     

@@ -34,6 +34,7 @@ class NodeInfoSerializer(serializers.Serializer):
     host = serializers.CharField()
     ip_address = serializers.CharField(max_length=39)
     organization = serializers.CharField()
+    pool_no = serializers.IntegerField()
 
 class TransferTimeSerializer(serializers.Serializer):
     source = serializers.CharField(max_length=64)

@@ -7,6 +7,7 @@ class NodeInfo(models.Model):
     host = models.TextField()
     ip_address = models.GenericIPAddressField(null=False)
     organization = models.TextField()
+    pool_no = models.PositiveIntegerField(null=False, default=0)
     
     class Meta:
         db_table = "NODE_INFO"
