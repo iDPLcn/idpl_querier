@@ -11,6 +11,9 @@ class NodeInfo(models.Model):
     
     class Meta:
         db_table = 'NODE_INFO'
+        
+    def __str__(self):
+        return self.host
  
 class MeasurePair(models.Model):
     source = models.ForeignKey(NodeInfo, related_name='source_measurepairs')
