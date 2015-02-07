@@ -6,7 +6,7 @@ Created on 2014.10.23
 from datetime import datetime
 from rest_framework import serializers
 from condor_archive.models import getTransferTimeModel
-from condor_archive.models import NodeInfo
+from condor_archive.models import NodeInfo, MeasurePair
 from django.core.exceptions import ObjectDoesNotExist
 
 def getOrganizationBySource(source):
@@ -30,11 +30,20 @@ class UnixTimestampField(serializers.DateTimeField):
         dt_value = datetime.fromtimestamp(float(value))
         return serializers.DateTimeField.from_native(self, dt_value)
 
-class NodeInfoSerializer(serializers.Serializer):
-    host = serializers.CharField()
-    ip_address = serializers.CharField(max_length=39)
-    organization = serializers.CharField()
-    pool_no = serializers.IntegerField()
+class NodeInfoSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = NodeInfo
+        field = ('id', 'host', 'ip_address', 'organization', 'pool_no')
+    
+class MeasurePairSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = MeasurePair
+        field = ('id', 'source', 'destination')
+                
+MeasurePairSerializer.base_fields['source'] = NodeInfoSerializer()
+MeasurePairSerializer.base_fields['destination'] = NodeInfoSerializer()
 
 class TransferTimeSerializer(serializers.Serializer):
     source = serializers.CharField(max_length=64)

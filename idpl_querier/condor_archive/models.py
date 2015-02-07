@@ -10,8 +10,13 @@ class NodeInfo(models.Model):
     pool_no = models.PositiveIntegerField(null=False, default=0)
     
     class Meta:
-        db_table = "NODE_INFO"
-        
+        db_table = 'NODE_INFO'
+ 
+class MeasurePair(models.Model):
+    source = models.ForeignKey(NodeInfo, related_name='source_measurepairs')
+    destination = models.ForeignKey(NodeInfo,
+                                    related_name='destination_measurepairs')
+
 class UnixTimestampField(models.DateTimeField):
     """UnixTimestampField: creates a DateTimeField that is represented on the 
     database as a TIMESTAMP field rather than the usual DATETIME field.

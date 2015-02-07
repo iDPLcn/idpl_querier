@@ -10,6 +10,7 @@ from condor_archive.views import *
 
 urlpatterns = patterns('',
     url(r'^nodeinfo/$', NodeInfoView.as_view()),
+    url(r'^measurepair/', MeasurePairView.as_view()),
     url(r'^transfertime/$', TransferTimeView.as_view()),
     url(r'^transfertime/average/$', TransferTimeAvgView.as_view()),
 )

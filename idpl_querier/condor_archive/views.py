@@ -3,9 +3,10 @@ from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from condor_archive.models import NodeInfo
+from condor_archive.models import NodeInfo, MeasurePair
 from condor_archive.models import getTransferTimeModel
 from condor_archive.serializers import NodeInfoSerializer
+from condor_archive.serializers import MeasurePairSerializer
 from condor_archive.serializers import TransferTimeSerializer
 from rest_framework.parsers import JSONParser
 from rest_framework.exceptions import APIException
@@ -15,7 +16,8 @@ from datetime import datetime
 from django.db.models import Avg
 # Create your views here.
 
-__all__ = ['NodeInfoView', 'TransferTimeView', 'TransferTimeAvgView']
+__all__ = ['NodeInfoView', 'TransferTimeView', 'TransferTimeAvgView',
+           'MeasurePairView']
 
 class ParameterError(APIException):
         
@@ -34,6 +36,16 @@ class NodeInfoView(APIView):
         else:
             nodeInfoList = NodeInfo.objects.all()
         serializer = NodeInfoSerializer(nodeInfoList, many=True)
+        return Response(serializer.data)
+    
+class MeasurePairView(APIView):
+    '''
+    Get all measurement pair
+    '''
+    
+    def get(self, requset):
+        measurePairList = MeasurePair.objects.all()
+        serializer = MeasurePairSerializer(measurePairList, many=True)
         return Response(serializer.data)
     
 class TransferTimeView(APIView):
