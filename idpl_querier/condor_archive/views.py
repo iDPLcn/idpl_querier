@@ -14,13 +14,14 @@ from rest_framework import permissions
 from condor_archive.serializers import getOrganizationBySource
 from datetime import datetime
 from django.db.models import Avg
+from django.core.exceptions import ObjectDoesNotExist
 # Create your views here.
 
 __all__ = ['NodeInfoView', 'TransferTimeView', 'TransferTimeAvgView',
            'MeasurePairView']
 
 class ParameterError(APIException):
-        
+
     status_code = 400
     detail = 'parameters error'
 
@@ -83,6 +84,7 @@ class TransferTimeView(APIView):
         """
         try:
             data = JSONParser().parse(request)
+            self.__update_measurepair(data['source'], data['destination'])
             serializer = TransferTimeSerializer(data=data)
             if serializer.is_valid():
                 serializer.create(data)
@@ -90,6 +92,27 @@ class TransferTimeView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception:
             raise ParameterError(detail='parameters format error')
+        
+    def __update_measurepair(self, source_host, destination_host):
+        try:
+            source_node = NodeInfo.objects.get(host=source_host)
+            destination_node = NodeInfo.objects.get(host=destination_host)
+        except ObjectDoesNotExist:
+            return None
+        try:
+            measurepair = MeasurePair.objects.get(
+                source=source_node,
+                destination=destination_node
+            )
+            return measurepair
+        except ObjectDoesNotExist:
+            measurepair = MeasurePair.objects.create(
+                source=source_node,
+                destination=destination_node
+            )
+            measurepair.save()
+        finally:
+            return measurepair
         
 class TransferTimeAvgView(APIView):
     def get(self, request):
