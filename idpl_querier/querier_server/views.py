@@ -38,9 +38,13 @@ class ThroughputAvgQuerier(APIView):
             length = len(points)
             for point in points:
                 throughputAvg += point.y_value / length
+            if length == 0:
+                throughputAvg = None;
+            else:
+                throughputAvg = round(throughputAvg,2)
         except Exception:
             raise Http404
-        return Response({'throughput__avg': round(throughputAvg,2)})
+        return Response({'throughput__avg': throughputAvg})
 
 class NetworkQuerier(APIView):
 
