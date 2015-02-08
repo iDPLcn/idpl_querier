@@ -5,10 +5,42 @@ from rest_framework.response import Response
 from rest_framework import status
 from esmond_client.connector import EsmondConn
 from querier_server.serializers import IntFloatPointSerializer
+from datetime import datetime
+from django.db.models import Avg
+import time
 
 # Create your views here.
 
-__all__ = ['ThroughputQuerier', 'OwdelayQuerier', 'PingQuerier', 'LossQuerier']
+__all__ = ['ThroughputQuerier', 'OwdelayQuerier', 'PingQuerier', 'LossQuerier',
+           'ThroughputAvgQuerier']
+
+class ThroughputAvgQuerier(APIView):
+    '''
+    Get average throughput by source IP and destination.
+    src -- source IP address
+    dst -- destination IP address
+    '''
+    
+    def get(self, request):
+        try:
+            source = request.GET.get('src', '')
+            destination = request.GET.get('dst', '')
+        except Exception:
+            raise Http404
+        timeEnd = datetime.now()
+        timeStart = datetime(timeEnd.year, 1, 1)
+        try:
+            conn = EsmondConn(source)
+            timestampStart = time.mktime(timeStart.timetuple())
+            timestampEnd = time.mktime(timeEnd.timetuple())
+            points = conn.getThroughputData(destination, int(timestampStart), int(timestampEnd))
+            throughputAvg = 0
+            length = len(points)
+            for point in points:
+                throughputAvg += point.y_value / length
+        except Exception:
+            raise Http404
+        return Response({'throughput__avg': round(throughputAvg,2)})
 
 class NetworkQuerier(APIView):
 
