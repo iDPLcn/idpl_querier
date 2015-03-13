@@ -13,4 +13,5 @@ urlpatterns = patterns('',
     url(r'^measurepair/', MeasurePairView.as_view()),
     url(r'^transfertime/$', TransferTimeView.as_view()),
     url(r'^transfertime/average/$', TransferTimeAvgView.as_view()),
+    url(r'^iperftime/$', IperfTimeView.as_view()),
 )

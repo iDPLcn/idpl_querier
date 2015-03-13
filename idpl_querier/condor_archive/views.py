@@ -5,9 +5,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from condor_archive.models import NodeInfo, MeasurePair
 from condor_archive.models import getTransferTimeModel
+from condor_archive.models import IperfTime
 from condor_archive.serializers import NodeInfoSerializer
 from condor_archive.serializers import MeasurePairSerializer
 from condor_archive.serializers import TransferTimeSerializer
+from condor_archive.serializers import IperfTimeSerializer
 from rest_framework.parsers import JSONParser
 from rest_framework.exceptions import APIException
 from rest_framework import permissions
@@ -18,7 +20,7 @@ from django.core.exceptions import ObjectDoesNotExist
 # Create your views here.
 
 __all__ = ['NodeInfoView', 'TransferTimeView', 'TransferTimeAvgView',
-           'MeasurePairView']
+           'MeasurePairView', 'IperfTimeView']
 
 class ParameterError(APIException):
 
@@ -53,7 +55,7 @@ class TransferTimeView(APIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     def get(self, request):
         '''
-        Get transfer time by source and destination, time range, organization  
+        Get transfer time by source and destination, time range, organization
         '''
         source = request.GET.get('source', '')
         destination = request.GET.get('destination', '')
@@ -84,7 +86,7 @@ class TransferTimeView(APIView):
         """
         try:
             data = JSONParser().parse(request)
-            self.__update_measurepair(data['source'], data['destination'])
+            update_measurepair(data['source'], data['destination'])
             serializer = TransferTimeSerializer(data=data)
             if serializer.is_valid():
                 serializer.create(data)
@@ -92,27 +94,6 @@ class TransferTimeView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception:
             raise ParameterError(detail='parameters format error')
-        
-    def __update_measurepair(self, source_host, destination_host):
-        try:
-            source_node = NodeInfo.objects.get(host=source_host)
-            destination_node = NodeInfo.objects.get(host=destination_host)
-        except ObjectDoesNotExist:
-            return None
-        try:
-            measurepair = MeasurePair.objects.get(
-                source=source_node,
-                destination=destination_node
-            )
-            return measurepair
-        except ObjectDoesNotExist:
-            measurepair = MeasurePair.objects.create(
-                source=source_node,
-                destination=destination_node
-            )
-            measurepair.save()
-        finally:
-            return measurepair
         
 class TransferTimeAvgView(APIView):
     def get(self, request):
@@ -135,3 +116,66 @@ class TransferTimeAvgView(APIView):
         except Exception:
             raise Http404
         return Response(TransferTimeAvg)
+    
+class IperfTimeView(APIView):
+    def get(self, request):
+        '''
+        Get iperf time by source and destination, time range, organization
+        '''
+        source = request.GET.get('source', '')
+        destination = request.GET.get('destination', '')
+        timeStartStr = request.GET.get('timeEnd-start')
+        timeEndStr = request.GET.get('timeEnd-end')
+        try:
+            timeStart = float(timeStartStr)
+            timeEnd = float(timeEndStr)
+        except Exception:
+            raise ParameterError(detail='parameters format error')
+        try:
+            IperfTimeList = IperfTime.objects.filter(
+                source=source,
+                destination=destination,
+                time_end__gte=timeStart,
+                time_end__lte=timeEnd
+            ).order_by('time_end')
+        except Exception:
+            raise Http404
+        serializer = IperfTimeSerializer(IperfTimeList, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        """
+        Create a iperf time object from JSON string, authentication needed
+        """
+        try:
+            data = JSONParser().parse(request)
+            update_measurepair(data['source'], data['destination'])
+            serializer = IperfTimeSerializer(data=data)
+            if serializer.is_valid():
+                serializer.create(data)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
+            raise ParameterError(detail='parameters format error')
+        
+def update_measurepair(source_host, destination_host):
+    try:
+        source_node = NodeInfo.objects.get(host=source_host)
+        destination_node = NodeInfo.objects.get(host=destination_host)
+    except ObjectDoesNotExist:
+        return None
+    try:
+        measurepair = MeasurePair.objects.get(
+            source=source_node,
+            destination=destination_node
+        )
+        return measurepair
+    except ObjectDoesNotExist:
+        measurepair = MeasurePair.objects.create(
+            source=source_node,
+            destination=destination_node
+        )
+        measurepair.save()
+    finally:
+        return measurepair
