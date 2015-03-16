@@ -14,4 +14,5 @@ urlpatterns = patterns('',
     url(r'^transfertime/$', TransferTimeView.as_view()),
     url(r'^transfertime/average/$', TransferTimeAvgView.as_view()),
     url(r'^iperftime/$', IperfTimeView.as_view()),
+    url(r'^iperftime/average/$', IperfTimeAvgView.as_view()),
 )

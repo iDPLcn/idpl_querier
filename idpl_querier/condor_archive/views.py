@@ -20,7 +20,7 @@ from django.core.exceptions import ObjectDoesNotExist
 # Create your views here.
 
 __all__ = ['NodeInfoView', 'TransferTimeView', 'TransferTimeAvgView',
-           'MeasurePairView', 'IperfTimeView']
+           'MeasurePairView', 'IperfTimeView', 'IperfTimeAvgView']
 
 class ParameterError(APIException):
 
@@ -159,6 +159,26 @@ class IperfTimeView(APIView):
             print(e)
             raise ParameterError(detail='parameters format error')
         
+class IperfTimeAvgView(APIView):
+    def get(self, request):
+        '''
+        Get average iperf time of the latest year by source and destination
+        '''
+        source = request.GET.get('source', '')
+        destination = request.GET.get('destination', '')
+        timeEnd = datetime.now()
+        timeStart = datetime(timeEnd.year, 1, 1)
+        try:
+            IperfTimeAvg = IperfTime.objects.filter(
+                source=source,
+                destination=destination,
+                time_end__gte=timeStart,
+                time_end__lte=timeEnd
+            ).aggregate(Avg('bandwidth'))
+        except Exception:
+            raise Http404
+        return Response(IperfTimeAvg)
+
 def update_measurepair(source_host, destination_host):
     try:
         source_node = NodeInfo.objects.get(host=source_host)
