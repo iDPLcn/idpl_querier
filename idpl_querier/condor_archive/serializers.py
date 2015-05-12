@@ -5,7 +5,7 @@ Created on 2014.10.23
 '''
 from datetime import datetime
 from rest_framework import serializers
-from condor_archive.models import getTransferTimeModel
+from condor_archive.models import getTransferTimeModel, NetcatData
 from condor_archive.models import NodeInfo, MeasurePair, IperfTime
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -78,3 +78,19 @@ class IperfTimeSerializer(serializers.Serializer):
         Create and return a new 'IperfTime' instance, given the validated data
         """
         return IperfTime.objects.create(**validated_data)
+    
+class NetcatDataSerializer(serializers.Serializer):
+    source = serializers.CharField(max_length=64)
+    destination = serializers.CharField(max_length=64)
+    time_start = UnixTimestampField()
+    time_end = UnixTimestampField()
+    md5_equal = serializers.BooleanField()
+    duration = serializers.FloatField()
+    data_size = serializers.FloatField()
+    bandwidth = serializers.FloatField()
+    
+    def create(self, validated_data):
+        """
+        Create and return a new 'NetcatData' instance, given the validated data
+        """
+        return NetcatData.objects.create(**validated_data)

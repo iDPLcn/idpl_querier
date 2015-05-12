@@ -75,6 +75,16 @@ class IperfTime(models.Model):
     duration = models.FloatField(null=False)
     data_size = models.FloatField(null=False)
     bandwidth = models.FloatField(null=False)
+    
+class NetcatData(models.Model):
+    source = models.CharField(max_length=64, null=False)
+    destination = models.CharField(max_length=64, null=False)
+    time_start = UnixTimestampField(null=False)
+    time_end = UnixTimestampField(null=False)
+    md5_equal = models.BooleanField(null=False, default=None)
+    duration = models.FloatField(null=False)
+    data_size = models.FloatField(null=False)
+    bandwidth = models.FloatField(null=False)
 
 def getTransferTimeModel(organization, BaseClass = TransferTime):
     if organization in globals():

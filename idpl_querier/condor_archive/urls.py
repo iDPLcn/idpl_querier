@@ -15,4 +15,6 @@ urlpatterns = patterns('',
     url(r'^transfertime/average/$', TransferTimeAvgView.as_view()),
     url(r'^iperftime/$', IperfTimeView.as_view()),
     url(r'^iperftime/average/$', IperfTimeAvgView.as_view()),
+    url(r'^netcatdata/$', NetcatDataView.as_view()),
+    url(r'^netcatdata/average/$', NetcatDataAvgView.as_view()),
 )

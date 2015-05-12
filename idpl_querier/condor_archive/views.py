@@ -6,10 +6,12 @@ from rest_framework import status
 from condor_archive.models import NodeInfo, MeasurePair
 from condor_archive.models import getTransferTimeModel
 from condor_archive.models import IperfTime
+from condor_archive.models import NetcatData
 from condor_archive.serializers import NodeInfoSerializer
 from condor_archive.serializers import MeasurePairSerializer
 from condor_archive.serializers import TransferTimeSerializer
 from condor_archive.serializers import IperfTimeSerializer
+from condor_archive.serializers import NetcatDataSerializer
 from rest_framework.parsers import JSONParser
 from rest_framework.exceptions import APIException
 from rest_framework import permissions
@@ -20,7 +22,8 @@ from django.core.exceptions import ObjectDoesNotExist
 # Create your views here.
 
 __all__ = ['NodeInfoView', 'TransferTimeView', 'TransferTimeAvgView',
-           'MeasurePairView', 'IperfTimeView', 'IperfTimeAvgView']
+           'MeasurePairView', 'IperfTimeView', 'IperfTimeAvgView',
+           'NetcatDataView', 'NetcatDataAvgView']
 
 class ParameterError(APIException):
 
@@ -155,21 +158,20 @@ class IperfTimeView(APIView):
                 serializer.create(data)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            print(e)
+        except Exception:
             raise ParameterError(detail='parameters format error')
         
 class IperfTimeAvgView(APIView):
     def get(self, request):
         '''
-        Get average iperf time of the latest year by source and destination
+        Get average iperf bandwidth of the latest year by source and destination
         '''
         source = request.GET.get('source', '')
         destination = request.GET.get('destination', '')
         timeEnd = datetime.now()
         timeStart = datetime(timeEnd.year, 1, 1)
         try:
-            IperfTimeAvg = IperfTime.objects.filter(
+            iperfBandwidthAvg = IperfTime.objects.filter(
                 source=source,
                 destination=destination,
                 time_end__gte=timeStart,
@@ -177,8 +179,69 @@ class IperfTimeAvgView(APIView):
             ).aggregate(Avg('bandwidth'))
         except Exception:
             raise Http404
-        return Response(IperfTimeAvg)
+        return Response(iperfBandwidthAvg)
+    
+class NetcatDataView(APIView):
+    def get(self, request):
+        '''
+        Get netcat data by source and destination, time range, organization
+        '''
+        source = request.GET.get('source', '')
+        destination = request.GET.get('destination', '')
+        timeStartStr = request.GET.get('timeEnd-start')
+        timeEndStr = request.GET.get('timeEnd-end')
+        try:
+            timeStart = float(timeStartStr)
+            timeEnd = float(timeEndStr)
+        except Exception:
+            raise ParameterError(detail='parameters format error')
+        try:
+            NetcatDataList = NetcatData.objects.filter(
+                source=source,
+                destination=destination,
+                time_end__gte=timeStart,
+                time_end__lte=timeEnd
+            ).order_by('time_end')
+        except Exception:
+            raise Http404
+        serializer = NetcatDataSerializer(NetcatDataList, many=True)
+        return Response(serializer.data)
 
+    def post(self, request):
+        """
+        Create a netcat data object from JSON string, authentication needed
+        """
+        try:
+            data = JSONParser().parse(request)
+            update_measurepair(data['source'], data['destination'])
+            serializer = NetcatDataSerializer(data=data)
+            if serializer.is_valid():
+                serializer.create(data)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            raise ParameterError(detail='parameters format error')
+
+class NetcatDataAvgView(APIView):
+    def get(self, request):
+        '''
+        Get average netcat bandwidth of the latest year by source and destination
+        '''
+        source = request.GET.get('source', '')
+        destination = request.GET.get('destination', '')
+        timeEnd = datetime.now()
+        timeStart = datetime(timeEnd.year, 1, 1)
+        try:
+            netcatBandwidthAvg = NetcatData.objects.filter(
+                source=source,
+                destination=destination,
+                time_end__gte=timeStart,
+                time_end__lte=timeEnd
+            ).aggregate(Avg('bandwidth'))
+        except Exception:
+            raise Http404
+        return Response(netcatBandwidthAvg)
+    
 def update_measurepair(source_host, destination_host):
     try:
         source_node = NodeInfo.objects.get(host=source_host)
