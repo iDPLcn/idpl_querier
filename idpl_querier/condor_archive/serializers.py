@@ -5,9 +5,13 @@ Created on 2014.10.23
 '''
 from datetime import datetime
 from rest_framework import serializers
-from condor_archive.models import getTransferTimeModel, NetcatData
-from condor_archive.models import NodeInfo, MeasurePair, IperfTime
+from condor_archive.models import *
 from django.core.exceptions import ObjectDoesNotExist
+
+__all__ = ['NodeInfoSerializer', 'MeasurePairSerializer',
+           'MeasurementInfoSerializer', 'MeasurementDataSerializer',
+           'TransferTimeSerializer', 'IperfTimeSerializer',
+           'NetcatDataSerializer', 'getOrganizationBySource']
 
 def getOrganizationBySource(source):
     try:
@@ -35,6 +39,12 @@ class NodeInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = NodeInfo
         field = ('id', 'host', 'ip_address', 'organization', 'pool_no')
+        
+class MeasurementInfoSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = MeasurementInfo
+        field = ('id', 'tool_name')
     
 class MeasurePairSerializer(serializers.ModelSerializer):
     
@@ -44,6 +54,25 @@ class MeasurePairSerializer(serializers.ModelSerializer):
                 
 MeasurePairSerializer.base_fields['source'] = NodeInfoSerializer()
 MeasurePairSerializer.base_fields['destination'] = NodeInfoSerializer()
+
+class MeasurementDataSerializer(serializers.Serializer):
+    source = serializers.CharField(max_length=64)
+    destination = serializers.CharField(max_length=64)
+    time_start = UnixTimestampField()
+    time_end = UnixTimestampField()
+    md5_equal = serializers.BooleanField()
+    duration = serializers.FloatField()
+    data_size = serializers.FloatField()
+    bandwidth = serializers.FloatField()
+    measurement = serializers.ModelField(model_field=MeasurementInfo)
+    
+    def create(self, validated_data):
+        """
+        Create and return a new 'measurement' instance, given the validated data
+        """
+        return MeasurementData.objects.create(**validated_data);
+        
+MeasurementDataSerializer.base_fields['measurement'] = MeasurementInfoSerializer()
 
 class TransferTimeSerializer(serializers.Serializer):
     source = serializers.CharField(max_length=64)

@@ -28,5 +28,3 @@ DATABASES = {
         'PORT': '3306'
     }
 }
-
-TIME_ZONE = 'Asia/Shanghai'

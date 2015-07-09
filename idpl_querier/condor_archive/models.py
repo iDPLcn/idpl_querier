@@ -2,24 +2,10 @@ from django.db import models
 from time import strftime
 from datetime import datetime
 
-# Create your models here.   
-class NodeInfo(models.Model):
-    host = models.TextField()
-    ip_address = models.GenericIPAddressField(null=False)
-    organization = models.TextField()
-    pool_no = models.PositiveIntegerField(null=False, default=0)
-    
-    class Meta:
-        db_table = 'NODE_INFO'
-        
-    def __str__(self):
-        return self.host
- 
-class MeasurePair(models.Model):
-    source = models.ForeignKey(NodeInfo, related_name='source_measurepairs')
-    destination = models.ForeignKey(NodeInfo,
-                                    related_name='destination_measurepairs')
+__all__ = ['NodeInfo', 'MeasurementInfo', 'MeasurementData', 'MeasurePair', 
+           'IperfTime', 'NetcatData', 'getTransferTimeModel']
 
+# Create your models here.
 class UnixTimestampField(models.DateTimeField):
     """UnixTimestampField: creates a DateTimeField that is represented on the 
     database as a TIMESTAMP field rather than the usual DATETIME field.
@@ -53,7 +39,51 @@ class UnixTimestampField(models.DateTimeField):
         # Use '%Y%m%d%H%M%S' for MySQL < 4.1
         return strftime('%Y-%m-%d %H:%M:%S',value.timetuple())
 
+class NodeInfo(models.Model):
+    host = models.TextField()
+    ip_address = models.GenericIPAddressField(null=False)
+    organization = models.TextField()
+    pool_no = models.PositiveIntegerField(null=False, default=0)
+
+    class Meta:
+        db_table = 'NODE_INFO'
+        
+    def __str__(self):
+        return self.host
+
+class MeasurementInfo(models.Model):
+    tool_name = models.TextField(null=False)
+    
+    class Meta:
+        db_table = 'MEASUREMENT_INFO'
+        
+    def __str__(self):
+        return self.tool_name
+    
+    def __unicode__(self):
+        return self.tool_name
+
+class MeasurementData(models.Model):
+    source = models.CharField(max_length=64, null=False)
+    destination = models.CharField(max_length=64, null=False)
+    time_start = UnixTimestampField(null=False)
+    time_end = UnixTimestampField(null=False)
+    md5_equal = models.BooleanField(null=False, default=None)
+    duration = models.FloatField(null=False)
+    data_size = models.FloatField(null=False)
+    bandwidth = models.FloatField(null=False)
+    measurement = models.ForeignKey(MeasurementInfo, related_name='measurements')
+
+class MeasurePair(models.Model):
+    source = models.ForeignKey(NodeInfo, related_name='source_measurepairs')
+    destination = models.ForeignKey(NodeInfo,
+                                    related_name='destination_measurepairs')
+
+
 class TransferTime(models.Model):
+    '''
+        Deprecated, new model is MeasurementData
+    '''
     source = models.CharField(max_length=64, null=False)
     destination = models.CharField(max_length=64, null=False)
     time_start = UnixTimestampField(null=False)
@@ -67,6 +97,9 @@ class TransferTime(models.Model):
         managed = False
 
 class IperfTime(models.Model):
+    '''
+        Deprecated, new model is MeasurementData
+    '''
     source = models.CharField(max_length=64, null=False)
     destination = models.CharField(max_length=64, null=False)
     time_start = UnixTimestampField(null=False)
@@ -77,6 +110,9 @@ class IperfTime(models.Model):
     bandwidth = models.FloatField(null=False)
     
 class NetcatData(models.Model):
+    '''
+        Deprecated, new model is MeasurementData
+    '''
     source = models.CharField(max_length=64, null=False)
     destination = models.CharField(max_length=64, null=False)
     time_start = UnixTimestampField(null=False)

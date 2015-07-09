@@ -1,6 +1,5 @@
 from django.contrib import admin
-from condor_archive.models import NodeInfo
-from condor_archive.models import MeasurePair
+from condor_archive.models import NodeInfo, MeasurementInfo, MeasurePair
 # Register your models here.
 
 class NodeInfoAdmin(admin.ModelAdmin):
@@ -20,5 +19,9 @@ class MeasurePairAdmin(admin.ModelAdmin):
     get_source_host.short_description='source'
     get_destination_host.short_description='destination'
     
+class MeasurementInfoAdmin(admin.ModelAdmin):
+    field = ['tool_name']
+    
 admin.site.register(NodeInfo, NodeInfoAdmin)
 admin.site.register(MeasurePair, MeasurePairAdmin)
+admin.site.register(MeasurementInfo, MeasurementInfoAdmin)

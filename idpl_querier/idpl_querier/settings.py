@@ -91,3 +91,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/idpl_querier/static/'
+
+TIME_ZONE = 'Asia/Shanghai'

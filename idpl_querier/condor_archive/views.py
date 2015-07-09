@@ -1,29 +1,22 @@
 # from django.shortcuts import render
+from datetime import datetime
 from django.http import Http404
+from django.db.models import Avg
+from django.core.exceptions import ObjectDoesNotExist
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from condor_archive.models import NodeInfo, MeasurePair
-from condor_archive.models import getTransferTimeModel
-from condor_archive.models import IperfTime
-from condor_archive.models import NetcatData
-from condor_archive.serializers import NodeInfoSerializer
-from condor_archive.serializers import MeasurePairSerializer
-from condor_archive.serializers import TransferTimeSerializer
-from condor_archive.serializers import IperfTimeSerializer
-from condor_archive.serializers import NetcatDataSerializer
 from rest_framework.parsers import JSONParser
 from rest_framework.exceptions import APIException
 from rest_framework import permissions
-from condor_archive.serializers import getOrganizationBySource
-from datetime import datetime
-from django.db.models import Avg
-from django.core.exceptions import ObjectDoesNotExist
+from condor_archive.models import *
+from condor_archive.serializers import *
 # Create your views here.
 
 __all__ = ['NodeInfoView', 'TransferTimeView', 'TransferTimeAvgView',
            'MeasurePairView', 'IperfTimeView', 'IperfTimeAvgView',
-           'NetcatDataView', 'NetcatDataAvgView']
+           'NetcatDataView', 'NetcatDataAvgView', 'MeasurementInfoView',
+           'MeasurementDataView', 'MeasurementDataAvgView']
 
 class ParameterError(APIException):
 
@@ -32,7 +25,7 @@ class ParameterError(APIException):
 
 class NodeInfoView(APIView):
     '''
-    Get all Node infomation
+    Get all Node information
     '''
 
     def get(self, request):
@@ -42,6 +35,15 @@ class NodeInfoView(APIView):
         else:
             nodeInfoList = NodeInfo.objects.all()
         serializer = NodeInfoSerializer(nodeInfoList, many=True)
+        return Response(serializer.data)
+    
+class MeasurementInfoView(APIView):
+    '''
+    Get all measurement information
+    '''
+    def get(self, request):
+        measurementList = MeasurementInfo.objects.all()
+        serializer = MeasurementInfoSerializer(measurementList, many=True)
         return Response(serializer.data)
     
 class MeasurePairView(APIView):
@@ -54,6 +56,74 @@ class MeasurePairView(APIView):
         serializer = MeasurePairSerializer(measurePairList, many=True)
         return Response(serializer.data)
     
+class MeasurementDataView(APIView):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    def get(self, request):
+        '''
+        Get measurement data by source, destination, time range, measurement type
+        '''
+        source = request.GET.get('source', '')
+        destination = request.GET.get('destination', '')
+        timeStartStr = request.GET.get('timeEnd-start')
+        timeEndStr = request.GET.get('timeEnd-end')
+        tool_name = request.GET.get('tool_name', '').upper()
+        try:
+            timeStart = float(timeStartStr)
+            timeEnd = float(timeEndStr)
+        except Exception:
+            raise ParameterError(detail='parameters format error')
+        try:
+            measurementDataList = MeasurementData.objects.filter(
+                source=source,
+                destination=destination,
+                time_end__gte=timeStart,
+                time_end__lte=timeEnd,
+                measurement__tool_name=tool_name
+            ).order_by('time_end')
+        except Exception:
+            raise Http404
+        serializer = MeasurementDataSerializer(measurementDataList, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        '''
+        Create a iperf time object from JSON string, authentication needed
+        '''
+        try:
+            data = JSONParser().parse(request)
+            update_measurepair(data['source'], data['destination'])
+            data['measurement'] = get_measurement(data['measurement'])
+            serializer = MeasurementDataSerializer(data=data)
+#             if serializer.is_valid():
+            serializer.create(data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            raise ParameterError(detail='parameters format error')
+
+class MeasurementDataAvgView(APIView):
+    def get(self, request):
+        '''
+        Get average iperf bandwidth of the latest year by source, destination
+        and tool type
+        '''
+        source = request.GET.get('source', '')
+        destination = request.GET.get('destination', '')
+        tool_name = request.GET.get('tool_name', '').upper()
+        timeEnd = datetime.now()
+        timeStart = datetime(timeEnd.year, 1, 1)
+        try:
+            MeasurementDataAvg = MeasurementData.objects.filter(
+                source=source,
+                destination=destination,
+                time_end__gte=timeStart,
+                time_end__lte=timeEnd,
+                measurement__tool_name=tool_name
+            ).aggregate(Avg('bandwidth'))
+        except Exception:
+            raise Http404
+        return Response(MeasurementDataAvg)
+
 class TransferTimeView(APIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     def get(self, request):
@@ -253,7 +323,6 @@ def update_measurepair(source_host, destination_host):
             source=source_node,
             destination=destination_node
         )
-        return measurepair
     except ObjectDoesNotExist:
         measurepair = MeasurePair.objects.create(
             source=source_node,
@@ -262,3 +331,13 @@ def update_measurepair(source_host, destination_host):
         measurepair.save()
     finally:
         return measurepair
+    
+def get_measurement(tool_name):
+    tool_name = tool_name.upper()
+    try:
+        measurement = MeasurementInfo.objects.get(tool_name=tool_name)
+    except ObjectDoesNotExist:
+        measurement = MeasurementInfo.objects.create(tool_name=tool_name)
+        measurement.save()
+    finally:
+        return measurement
