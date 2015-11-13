@@ -3,7 +3,7 @@
 USERNAME="idpl"
 PASSWORD="idpl"
 HOSTNAME="localhost:8000"
-API_URI="/condor/measuremenetdata/"
+API_URI="/condor/measurementdata/"
 
 SENDER=$1
 RECEIVER=$2
